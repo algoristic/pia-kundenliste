@@ -73,7 +73,70 @@ $Base = @{
 # so we can delete the file if not needed
 $WorkingFileBackup = ""
 
-# create a backup file
+Function Parse-ImportData
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true)]
+        $Worksheet,
+        [Parameter(Mandatory=$true)]
+        $Line
+    )
+    $ImportLine = @{
+        Layer = $Worksheet.Cells.Item($Line, $ImportFile.Data.Layer).Text
+        CustomerNo = $Worksheet.Cells.Item($Line, $ImportFile.Data.CustomerNo).Value2
+        Status = $Worksheet.Cells.Item($Line, $ImportFile.Data.Status).Text
+        Surname = $Worksheet.Cells.Item($Line, $ImportFile.Data.Surname).Text
+        Forename = $Worksheet.Cells.Item($Line, $ImportFile.Data.Forename).Text
+        Company = $Worksheet.Cells.Item($Line, $ImportFile.Data.Company).Text
+        PostalCode = $Worksheet.Cells.Item($Line, $ImportFile.Data.PostalCode).Text
+        Place = $Worksheet.Cells.Item($Line, $ImportFile.Data.Place).Text
+        Phone = $Worksheet.Cells.Item($Line, $ImportFile.Data.Phone).Text
+        EMail = $Worksheet.Cells.Item($Line, $ImportFile.Data.EMail).Text
+        BelongsTo = $Worksheet.Cells.Item($Line, $ImportFile.Data.BelongsTo).Value2
+        FirstOrderDate = $null
+        LastSale = $null
+    }
+    $FirstOrderDateValue = $Worksheet.Cells.Item($Line, $ImportFile.Data.FirstOrderDate).Text
+    If($FirstOrderDateValue -ne "")
+    {
+        $FirstOrderDate = [datetime]::ParseExact($FirstOrderDateValue, 'yyyy-MM-dd', $null)
+        $ImportLine.FirstOrderDate = $FirstOrderDate
+    }
+
+    $LastSaleValue = $Worksheet.Cells.Item($Line, $ImportFile.Data.LastSale).Text
+    If($LastSaleValue -ne "")
+    {
+        $LastSale = [datetime]::ParseExact($LastSaleValue, 'yyyy-MM-dd', $null)
+        $ImportLine.LastSale = $LastSale
+    }
+    return $ImportLine
+}
+
+Function Transfer-CustomerData
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true)]
+        $Import,
+        [Parameter(Mandatory=$true)]
+        $Overview,
+        [Parameter(Mandatory=$true)]
+        $Masterdata
+    )
+    $Layer = $null
+    $Line = $ImportFile.Data.Headline + 1
+    Do {
+        $Layer = $Import.Cells.Item($Line, $ImportFile.Data.Layer)
+        If ($Layer.Text -ne "") {
+            $ImportLine = Parse-ImportData -Worksheet $Import -Line $Line
+            # TODO: WIP
+        }
+        $Line++
+    } While ($Layer.Text -ne "")
+}
+
+# create a generic backup file
 Function Create-Backup
 {
     [CmdletBinding()]
@@ -93,6 +156,7 @@ Function Create-Backup
     Copy-Item $FileToBackup -Destination $WorkingFileBackup
 }
 
+# create a backup file for the customer list
 Function Create-CustomerListBackup
 {
     [CmdletBinding()]
@@ -103,6 +167,7 @@ Function Create-CustomerListBackup
     Create-Backup -FileToBackup $FileToBackup -FileBackupDirectory $BackupDir -BackupFileName "Kundenliste"
 }
 
+# create a backup for the processed import and delete it afterwards
 Function Create-ImportFileBackup
 {
     [CmdletBinding()]
@@ -113,20 +178,6 @@ Function Create-ImportFileBackup
     Create-Backup -FileToBackup $FileToBackup -FileBackupDirectory $ImportArchive -BackupFileName "Import" -BackupFileFormat "xls"
     # TODO: delete import-file after backup
     # Remove-Item $FileToBackup
-}
-
-Function Transfer-CustomerData
-{
-    [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory=$true)]
-        $Import,
-        [Parameter(Mandatory=$true)]
-        $Overview,
-        [Parameter(Mandatory=$true)]
-        $Masterdata
-    )
-    
 }
 
 # backup working file
