@@ -351,8 +351,7 @@ Function Create-ImportFileBackup
         [String]$FileToBackup
     )
     Create-Backup -FileToBackup $FileToBackup -FileBackupDirectory $ImportArchive -BackupFileName "Import" -BackupFileFormat "xls"
-    # TODO: delete import-file after backup
-    # Remove-Item $FileToBackup
+    Remove-Item $FileToBackup
 }
 
 # backup working file
