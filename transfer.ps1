@@ -13,7 +13,13 @@ Param(
     [String]$BackupDir = "$PSScriptRoot\archiv",
 
     [Parameter(Mandatory=$false)]
-    [String]$ImportArchive = "$PSScriptRoot\import"
+    [String]$ImportArchive = "$PSScriptRoot\import",
+
+    [Parameter(Mandatory=$false)]
+    [String]$DateFormat = "MM.dd.yyyy",
+
+    [Parameter(Mandatory=$false)]
+    [String]$DateFormatLocal = "TT.MM.JJJJ"
 )
 # init structures
 $ImportFile = @{
@@ -113,6 +119,107 @@ Function Parse-ImportData
     return $ImportLine
 }
 
+Function Find-Line
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true)]
+        $CustomerNo,
+        [Parameter(Mandatory=$true)]
+        $Index,
+        [Parameter(Mandatory=$true)]
+        $Worksheet,
+        [Parameter(Mandatory=$false)]
+        [int]$StartLineIndex = 2
+    )
+    $Line = --$StartLineIndex
+    Do {
+        $Line++
+        $CurrentCustomerNo = $Worksheet.Cells.Item($Line, $Index)
+        If ($CurrentCustomerNo.Text -ne "")
+        {
+            If ($CurrentCustomerNo.Value2 -eq $CustomerNo)
+            {
+                return $Line
+            }
+        }
+    } While ($CurrentCustomerNo.Text -ne "")
+    # we iterated the whole dataset, so index is equals (last line + 1)
+    return $Line
+}
+
+Function Set-DateData
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true)]
+        $Cell,
+        [Parameter(Mandatory=$true)]
+        $Date
+    )
+    $Day = $Date.Day
+    $Month = $Date.Month
+    $Year = $Date.Year
+    $Cell.Value2 = "$Day.$Month.$Year"
+    $Cell.NumberFormat = $DateFormat
+    $Cell.NumberFormatLocal = $DateFormatLocal
+}
+
+Function Write-OverviewLine
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true)]
+        $Overview,
+        [Parameter(Mandatory=$true)]
+        $Line,
+        [Parameter(Mandatory=$true)]
+        $Data
+    )
+    $Layer = $Overview.Cells.Item($Line, $Base.Overview.Layer)
+    If ($Layer.Text -eq "")
+    {
+        $Layer.Value2 = $Data.Layer.ToString()
+    }
+    $CustomerNo = $Overview.Cells.Item($Line, $Base.Overview.CustomerNo)
+    If ($CustomerNo.Text -eq "")
+    {
+        $CustomerNo.Value2 = $Data.CustomerNo.ToString()
+    }
+    $Status = $Overview.Cells.Item($Line, $Base.Overview.Status)
+    If ($Status.Text -eq "")
+    {
+        $Status.Value2 = $Data.Status.ToString()
+    }
+    $Surname = $Overview.Cells.Item($Line, $Base.Overview.Surname)
+    If ($Surname.Text -eq "")
+    {
+        $Surname.Value2 = $Data.Surname.ToString()
+    }
+    $Forename = $Overview.Cells.Item($Line, $Base.Overview.Forename)
+    If ($Forename.Text -eq "")
+    {
+        $Forename.Value2 = $Data.Forename.ToString()
+    }
+    $Phone = $Overview.Cells.Item($Line, $Base.Overview.Phone)
+    If ($Phone.Text -eq "")
+    {
+        $Phone.Value2 = $Data.Phone.ToString()
+    }
+    $LastSale = $Overview.Cells.Item($Line, $Base.Overview.LastSale)
+    If ($LastSale.Text -eq "")
+    {
+        If ($Data.LastSale)
+        {
+            Set-DateData -Cell $LastSale -Date $Data.LastSale
+        }
+    }
+
+    # available fields:
+    # overview: Layer, CustomerNo, Status, Surname, Forename, Phone, *FirstContactDate*, *FirstOrderDate*, *LastSale*, NextOrder
+    # import: Layer, CustomerNo, Status, Surname, Forename, Company, PostalCode, Place, Phone, EMail, BelongsTo, FirstOrderDate, LastSale
+}
+
 Function Transfer-CustomerData
 {
     [CmdletBinding()]
@@ -128,9 +235,13 @@ Function Transfer-CustomerData
     $Line = $ImportFile.Data.Headline + 1
     Do {
         $Layer = $Import.Cells.Item($Line, $ImportFile.Data.Layer)
-        If ($Layer.Text -ne "") {
+        If ($Layer.Text -ne "")
+        {
             $ImportLine = Parse-ImportData -Worksheet $Import -Line $Line
-            # TODO: WIP
+            echo $ImportLine
+            $OverviewLineIndex = Find-Line -CustomerNo $ImportLine.CustomerNo -Index $Base.Overview.CustomerNo -Worksheet $Overview
+            Write-OverviewLine -Overview $Overview -Line $OverviewLineIndex -Data $ImportLine
+            $MasterdataLineIndex = Find-Line -CustomerNo $ImportLine.CustomerNo -Index $Base.Masterdata.CustomerNo -Worksheet $Masterdata
         }
         $Line++
     } While ($Layer.Text -ne "")
@@ -183,28 +294,21 @@ Function Create-ImportFileBackup
 # backup working file
 Create-CustomerListBackup $WorkingFile
 
-Try
-{
-    # open up the workbook
-    $Excel = new-object -comobject Excel.Application
-    $Excel.visible = $false
+# open up the workbook
+$Excel = new-object -comobject Excel.Application
+$Excel.visible = $false
 
-    $MergeFileData = $Excel.Workbooks.Open($MergeFile)
-    $WorkingFileData = $Excel.Workbooks.Open($WorkingFile)
+$MergeFileData = $Excel.Workbooks.Open($MergeFile)
+$WorkingFileData = $Excel.Workbooks.Open($WorkingFile)
 
-    $Import = $MergeFileData.Worksheets.Item($ImportFile.Data.Index)
-    $Overview = $WorkingFileData.Worksheets.Item($Base.Overview.Index)
-    $Masterdata = $WorkingFileData.Worksheets.Item($Base.Masterdata.Index)
+$Import = $MergeFileData.Worksheets.Item($ImportFile.Data.Index)
+$Overview = $WorkingFileData.Worksheets.Item($Base.Overview.Index)
+$Masterdata = $WorkingFileData.Worksheets.Item($Base.Masterdata.Index)
 
-    Transfer-CustomerData -Import $Import -Overview $Overview -Masterdata $Masterdata
+Transfer-CustomerData -Import $Import -Overview $Overview -Masterdata $Masterdata
 
-    # $WorkingFileData.SaveAs($WorkingFile)
-    $Excel.Quit()
-    Create-ImportFileBackup $MergeFile
-}
-Catch
-{
-    # delete backup file if no changes take place due to error while processing
-    Remove-Item $WorkingFileBackup
-}
+$WorkingFileData.SaveAs($WorkingFile)
+$Excel.Quit()
+Create-ImportFileBackup $MergeFile
+
 echo "Fertig! Sie koennen das Fenster jetzt schliessen."
