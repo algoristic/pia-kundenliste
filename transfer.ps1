@@ -158,7 +158,15 @@ Function Set-DateData
         $Date
     )
     $Day = $Date.Day
+    If ($Day -lt 10)
+    {
+        $Day = "0$Day"
+    }
     $Month = $Date.Month
+    If ($Month -lt 10)
+    {
+        $Month = "0$Month"
+    }
     $Year = $Date.Year
     $Cell.Value2 = "$Day.$Month.$Year"
     $Cell.NumberFormat = $DateFormat
@@ -238,7 +246,6 @@ Function Transfer-CustomerData
         If ($Layer.Text -ne "")
         {
             $ImportLine = Parse-ImportData -Worksheet $Import -Line $Line
-            echo $ImportLine
             $OverviewLineIndex = Find-Line -CustomerNo $ImportLine.CustomerNo -Index $Base.Overview.CustomerNo -Worksheet $Overview
             Write-OverviewLine -Overview $Overview -Line $OverviewLineIndex -Data $ImportLine
             $MasterdataLineIndex = Find-Line -CustomerNo $ImportLine.CustomerNo -Index $Base.Masterdata.CustomerNo -Worksheet $Masterdata
