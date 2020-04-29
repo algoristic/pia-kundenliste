@@ -173,6 +173,48 @@ Function Set-DateData
     $Cell.NumberFormatLocal = $DateFormatLocal
 }
 
+Function Get-NextOrderDate
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true)]
+        $Line
+    )
+    return "=I2+(WENNNV(WENN(MIN(WENN(SVERWEIS(B2;Stammdaten!A:K;7)>0;SVERWEIS(B2;Stammdaten!A:K;7);9999);WENN(SVERWEIS(B2;Stammdaten!A:K;11)>0;SVERWEIS(B2;Stammdaten!A:K;11);9999))=9999;30;MIN(WENN(SVERWEIS(B2;Stammdaten!A:K;7)>0;SVERWEIS(B2;Stammdaten!A:K;7);9999);WENN(SVERWEIS(B2;Stammdaten!A:K;11)>0;SVERWEIS(B2;Stammdaten!A:K;11);9999)));30))"
+}
+
+Function Write-MasterdataLine
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true)]
+        $Masterdata,
+        [Parameter(Mandatory=$true)]
+        $Line,
+        [Parameter(Mandatory=$true)]
+        $Data
+    )
+    $CustomerNo = $Masterdata.Cells.Item($Line, $Base.Masterdata.CustomerNo)
+    If ($CustomerNo.Text -eq "")
+    {
+        $CustomerNo.Value2 = $Data.CustomerNo.ToString()
+    }
+    $Surname = $Masterdata.Cells.Item($Line, $Base.Masterdata.Surname)
+    If ($Surname.Text -eq "")
+    {
+        $Surname.Value2 = $Data.Surname.ToString()
+    }
+    $Forename = $Masterdata.Cells.Item($Line, $Base.Masterdata.Forename)
+    If ($Forename.Text -eq "")
+    {
+        $Forename.Value2 = $Data.Forename.ToString()
+    }
+
+    # available fields:
+    # masterdata: CustomerNo, Surname, Forename
+    # import:     Layer, CustomerNo, Status, Surname, Forename, Company, PostalCode, Place, Phone, EMail, BelongsTo, FirstOrderDate, LastSale
+}
+
 Function Write-OverviewLine
 {
     [CmdletBinding()]
@@ -185,20 +227,18 @@ Function Write-OverviewLine
         $Data
     )
     $Layer = $Overview.Cells.Item($Line, $Base.Overview.Layer)
-    If ($Layer.Text -eq "")
-    {
-        $Layer.Value2 = $Data.Layer.ToString()
-    }
+    $Layer.Value2 = $Data.Layer.ToString()
+
     $CustomerNo = $Overview.Cells.Item($Line, $Base.Overview.CustomerNo)
     If ($CustomerNo.Text -eq "")
     {
         $CustomerNo.Value2 = $Data.CustomerNo.ToString()
     }
+
+    # customer can become a teampartner etc. -> so overwrite this
     $Status = $Overview.Cells.Item($Line, $Base.Overview.Status)
-    If ($Status.Text -eq "")
-    {
-        $Status.Value2 = $Data.Status.ToString()
-    }
+    $Status.Value2 = $Data.Status.ToString()
+
     $Surname = $Overview.Cells.Item($Line, $Base.Overview.Surname)
     If ($Surname.Text -eq "")
     {
@@ -209,22 +249,38 @@ Function Write-OverviewLine
     {
         $Forename.Value2 = $Data.Forename.ToString()
     }
+
     $Phone = $Overview.Cells.Item($Line, $Base.Overview.Phone)
-    If ($Phone.Text -eq "")
+    $Phone.Value2 = $Data.Phone.ToString()
+
+    If ($Data.LastSale)
     {
-        $Phone.Value2 = $Data.Phone.ToString()
+        $LastSale = $Overview.Cells.Item($Line, $Base.Overview.LastSale)
+        Set-DateData -Cell $LastSale -Date $Data.LastSale
     }
-    $LastSale = $Overview.Cells.Item($Line, $Base.Overview.LastSale)
-    If ($LastSale.Text -eq "")
+    Else
     {
-        If ($Data.LastSale)
+        If ($Data.FirstOrderDate)
         {
-            Set-DateData -Cell $LastSale -Date $Data.LastSale
+            $LastSale = $Overview.Cells.Item($Line, $Base.Overview.LastSale)
+            Set-DateData -Cell $LastSale -Date $Data.FirstOrderDate
         }
     }
 
+    If ($Data.FirstOrderDate)
+    {
+        $FirstOrderDate = $Overview.Cells.Item($Line, $Base.Overview.FirstOrderDate)
+        Set-DateData -Cell $FirstOrderDate -Date $Data.FirstOrderDate
+    }
+
+    # $NextOrder = $Overview.Cells.Item($Line, $Base.Overview.NextOrder)
+    # If ($NextOrder.Text -eq "")
+    # {
+    #     $NextOrder.formula = (Get-NextOrderDate -Line $Line)
+    # }
+
     # available fields:
-    # overview: Layer, CustomerNo, Status, Surname, Forename, Phone, *FirstContactDate*, *FirstOrderDate*, *LastSale*, NextOrder
+    # overview: Layer, CustomerNo, Status, Surname, Forename, Phone, FirstContactDate, FirstOrderDate, LastSale, NextOrder
     # import: Layer, CustomerNo, Status, Surname, Forename, Company, PostalCode, Place, Phone, EMail, BelongsTo, FirstOrderDate, LastSale
 }
 
@@ -249,6 +305,7 @@ Function Transfer-CustomerData
             $OverviewLineIndex = Find-Line -CustomerNo $ImportLine.CustomerNo -Index $Base.Overview.CustomerNo -Worksheet $Overview
             Write-OverviewLine -Overview $Overview -Line $OverviewLineIndex -Data $ImportLine
             $MasterdataLineIndex = Find-Line -CustomerNo $ImportLine.CustomerNo -Index $Base.Masterdata.CustomerNo -Worksheet $Masterdata
+            Write-MasterdataLine -Masterdata $Masterdata -Line $MasterdataLineIndex -Data $ImportLine
         }
         $Line++
     } While ($Layer.Text -ne "")
