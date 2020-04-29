@@ -1,0 +1,39 @@
+=
+WENN(
+	I2="";
+	"";
+	I2+(
+		WENNNV(
+			WENN(
+				MIN(
+					WENN(
+						SVERWEIS(B2;Stammdaten!A:K;7)>0;
+						SVERWEIS(B2;Stammdaten!A:K;7);
+						9999
+					);
+					WENN(
+						SVERWEIS(B2;Stammdaten!A:K;11)>0;
+						SVERWEIS(B2;Stammdaten!A:K;11);
+						9999
+					)
+				)=9999;
+				30;
+				MIN(
+					WENN(
+						SVERWEIS(B2;Stammdaten!A:K;7)>0;
+						SVERWEIS(B2;Stammdaten!A:K;7);
+						9999
+					);
+					WENN(
+						SVERWEIS(B2;Stammdaten!A:K;11)>0;
+						SVERWEIS(B2;Stammdaten!A:K;11);
+						9999
+					)
+				)
+			);
+			30
+		)
+	)
+)
+
+=WENN(I2="";"";I2+(WENNNV(WENN(MIN(WENN(SVERWEIS(B2;Stammdaten!A:K;7)>0;SVERWEIS(B2;Stammdaten!A:K;7);9999);WENN(SVERWEIS(B2;Stammdaten!A:K;11)>0;SVERWEIS(B2;Stammdaten!A:K;11);9999))=9999;30;MIN(WENN(SVERWEIS(B2;Stammdaten!A:K;7)>0;SVERWEIS(B2;Stammdaten!A:K;7);9999);WENN(SVERWEIS(B2;Stammdaten!A:K;11)>0;SVERWEIS(B2;Stammdaten!A:K;11);9999)));30)))
