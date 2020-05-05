@@ -173,16 +173,6 @@ Function Set-DateData
     $Cell.NumberFormatLocal = $DateFormatLocal
 }
 
-Function Get-NextOrderDate
-{
-    [CmdletBinding()]
-    Param(
-        [Parameter(Mandatory=$true)]
-        $Line
-    )
-    return "=I2+(WENNNV(WENN(MIN(WENN(SVERWEIS(B2;Stammdaten!A:K;7)>0;SVERWEIS(B2;Stammdaten!A:K;7);9999);WENN(SVERWEIS(B2;Stammdaten!A:K;11)>0;SVERWEIS(B2;Stammdaten!A:K;11);9999))=9999;30;MIN(WENN(SVERWEIS(B2;Stammdaten!A:K;7)>0;SVERWEIS(B2;Stammdaten!A:K;7);9999);WENN(SVERWEIS(B2;Stammdaten!A:K;11)>0;SVERWEIS(B2;Stammdaten!A:K;11);9999)));30))"
-}
-
 Function Write-MasterdataLine
 {
     [CmdletBinding()]
@@ -209,9 +199,19 @@ Function Write-MasterdataLine
     {
         $Forename.Value2 = $Data.Forename.ToString()
     }
+#    $DogReserve = $Masterdata.Cells.Item($Line, $Base.Masterdata.DogReserve)
+#    If ($DogReserve.Text -eq "")
+#    {
+#        $DogReserve.formula = "=WENNFEHLER(RUNDEN(((E$($Line)*6)*D$($Line))/F$($Line);0);`"`")"
+#    }
+#    $CatReserve = $Masterdata.Cells.Item($Line, $Base.Masterdata.CatReserve)
+#    If ($CatReserve.Text -eq "")
+#    {
+#        $CatReserve.formula = "=IFERROR(ROUND(((I$($Line)*6)*H$($Line))/J$($Line);0);`"`")"
+#    }
 
     # available fields:
-    # masterdata: CustomerNo, Surname, Forename
+    # masterdata: CustomerNo, Surname, Forename, DogReserve, CatReserve
     # import:     Layer, CustomerNo, Status, Surname, Forename, Company, PostalCode, Place, Phone, EMail, BelongsTo, FirstOrderDate, LastSale
 }
 
@@ -273,11 +273,11 @@ Function Write-OverviewLine
         Set-DateData -Cell $FirstOrderDate -Date $Data.FirstOrderDate
     }
 
-    # $NextOrder = $Overview.Cells.Item($Line, $Base.Overview.NextOrder)
-    # If ($NextOrder.Text -eq "")
-    # {
-    #     $NextOrder.formula = (Get-NextOrderDate -Line $Line)
-    # }
+#    $NextOrder = $Overview.Cells.Item($Line, $Base.Overview.NextOrder)
+#    If ($NextOrder.Text -eq "")
+#    {
+#        $NextOrder.formula = ""
+#    }
 
     # available fields:
     # overview: Layer, CustomerNo, Status, Surname, Forename, Phone, FirstContactDate, FirstOrderDate, LastSale, NextOrder
