@@ -1,6 +1,6 @@
 # Formeln
 
-## Daten
+## Daten (_Kundenliste_)
 
 ### Spalte *Bestellung notwendig*
 
@@ -118,7 +118,7 @@ WENNFEHLER(
 =WENNFEHLER(RUNDEN(((I2*6)*H2)/J2; 0);"")
 ```
 
-## Bedingte Formatierung
+## Bedingte Formatierung (_Kundenliste_)
 
 ### Spalte *Bestellung notwendig*
 
@@ -135,3 +135,11 @@ WENNFEHLER(
 `=UND(ISTZAHL(G1);DATEDIF(HEUTE();G1;"D")<=7;DATEDIF(HEUTE();G1;"D")>2)`: `#F6C700`
 
 `=UND(ISTZAHL(G1);DATEDIF(HEUTE();G1;"D")<=2)`: `#007256`
+
+## Bedingte Formatierung (_Geburtstage_)
+
+`=UND(ISTZAHL(A1);DATEDIF(HEUTE();A1;"D")>20)`: `#007256`
+
+`=UND(ISTZAHL(A1);DATEDIF(HEUTE();A1;"D")<=20;DATEDIF(HEUTE();A1;"D")>10)`: `#F6C700`
+
+`=UND(ISTZAHL(A1);DATEDIF(HEUTE();A1;"D")<=10)`: `#BD1E24`
