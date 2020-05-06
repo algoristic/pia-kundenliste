@@ -1,3 +1,5 @@
 *.xls
 *.xlsx
+*.xlsm
 !Kundenliste.xlsx
+!Geburtstage.xlsm
