@@ -19,7 +19,7 @@ WENN(
 								B2;
 								Stammdaten!A:K;
 								7
-							)>0;
+							)<>"";
 							SVERWEIS(
 								B2;
 								Stammdaten!A:K;
@@ -32,7 +32,7 @@ WENN(
 								B2;
 								Stammdaten!A:K;
 								11
-							)>0;
+							)<>"";
 							SVERWEIS(
 								B2;
 								Stammdaten!A:K;
@@ -48,7 +48,7 @@ WENN(
 								B2;
 								Stammdaten!A:K;
 								7
-							)>0;
+							)<>"";
 							SVERWEIS(
 								B2;
 								Stammdaten!A:K;
@@ -61,7 +61,7 @@ WENN(
 								B2;
 								Stammdaten!A:K;
 								11
-							)>0;
+							)<>"";
 							SVERWEIS(
 								B2;
 								Stammdaten!A:K;
@@ -79,7 +79,7 @@ WENN(
 )
 ```
 ```
-=WENN(I2="";"";I2+(WENNFEHLER(WENNNV(WENN(MIN(WENN(SVERWEIS(B2;Stammdaten!A:K;7)>0;SVERWEIS(B2;Stammdaten!A:K;7);9999);WENN(SVERWEIS(B2;Stammdaten!A:K;11)>0;SVERWEIS(B2;Stammdaten!A:K;11);9999))=9999;30;MIN(WENN(SVERWEIS(B2;Stammdaten!A:K;7)>0;SVERWEIS(B2;Stammdaten!A:K;7);9999);WENN(SVERWEIS(B2;Stammdaten!A:K;11)>0;SVERWEIS(B2;Stammdaten!A:K;11);9999)));30);30)))
+=WENN(I2="";"";I2+(WENNFEHLER(WENNNV(WENN(MIN(WENN(SVERWEIS(B2;Stammdaten!A:K;7)<>"";SVERWEIS(B2;Stammdaten!A:K;7);9999);WENN(SVERWEIS(B2;Stammdaten!A:K;11)<>"";SVERWEIS(B2;Stammdaten!A:K;11);9999))=9999;30;MIN(WENN(SVERWEIS(B2;Stammdaten!A:K;7)<>"";SVERWEIS(B2;Stammdaten!A:K;7);9999);WENN(SVERWEIS(B2;Stammdaten!A:K;11)<>"";SVERWEIS(B2;Stammdaten!A:K;11);9999)));30);30)))
 ```
 
 ### Spalte *Vorrat für [Tage / Hund]*
