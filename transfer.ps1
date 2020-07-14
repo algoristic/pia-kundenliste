@@ -1,5 +1,6 @@
 <#
     AUTHOR: MARCO LEWEKE
+    VERSION: 1.1.3
 #>
 [CmdletBinding()]
 Param(
