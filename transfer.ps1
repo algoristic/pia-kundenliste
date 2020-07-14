@@ -374,4 +374,12 @@ $WorkingFileData.SaveAs($WorkingFile)
 $Excel.Quit()
 Create-ImportFileBackup $MergeFile
 
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($Masterdata)
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($Overview)
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($Import)
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($WorkingFileData)
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($MergeFileData)
+[System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excel)
+[System.GC]::Collect()
+
 echo "Fertig! Sie koennen das Fenster jetzt schliessen."
